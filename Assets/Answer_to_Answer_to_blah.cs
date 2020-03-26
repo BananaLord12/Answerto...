@@ -88,9 +88,7 @@ public class Answer_to_Answer_to_blah : MonoBehaviour
 	// Update is called once per frame
 	void Update ()
     {
-        var minutes = Bomb.GetTime();
-        minutes = Convert.ToInt32(minutes / 60);
-        solvedmodulesnames = Bomb.GetSolvedModuleNames();
+        solvedmodulesnames = Bomb.GetModuleNames();
         strikes = Bomb.GetStrikes();
         if(strikes != recentStrikes && !moduleSolved)
         {
@@ -148,7 +146,7 @@ public class Answer_to_Answer_to_blah : MonoBehaviour
         {
             if(Bomb.IsPortPresent(Port.Serial) && Bomb.IsPortPresent(Port.Parallel))
             {
-                index = (index * 89) % 30;
+                index = (index + 89) % 30;
                 Debug.LogFormat("[The Answer to ... #{0}] Light indicator is red AND there is a serial and a parallel port present", moduleId);
                 Debug.LogFormat("[The Answer to ... #{0}] The Index is {1}", moduleId, index);
             }
@@ -160,7 +158,7 @@ public class Answer_to_Answer_to_blah : MonoBehaviour
             }
             else if (Bomb.IsPortPresent(Port.Parallel))
             {
-                index = (index - 26) % 30;
+                index = (index - 26) < 0 ? index-26:index % 30;
                 if(index < 0)
                 {
                     index += 30;
@@ -183,23 +181,17 @@ public class Answer_to_Answer_to_blah : MonoBehaviour
                 Debug.LogFormat("[The Answer to ... #{0}] Light indicator is green AND there is a TRN indicator present", moduleId);
                 Debug.LogFormat("[The Answer to ... #{0}] The Index is {1}", moduleId, index);
             }
-            else if (Bomb.IsIndicatorPresent(Indicator.NSA))
+            else if (Bomb.IsIndicatorOn(Indicator.NSA))
             {
-                if (Bomb.IsIndicatorOn(Indicator.NSA))
-                {
-                    index = (index + battholder) % 30;
-                    Debug.LogFormat("[The Answer to ... #{0}] Light indicator is green AND there is a lit NSA indicator present", moduleId);
-                    Debug.LogFormat("[The Answer to ... #{0}] The Index is {1}", moduleId, index);
-                }
+                index = (index + battholder) % 30;
+                Debug.LogFormat("[The Answer to ... #{0}] Light indicator is green AND there is a lit NSA indicator present", moduleId);
+                Debug.LogFormat("[The Answer to ... #{0}] The Index is {1}", moduleId, index);
             }
-            else if (Bomb.IsIndicatorPresent(Indicator.CAR))
+            else if (Bomb.IsIndicatorOff(Indicator.CAR))
             {
-                if (Bomb.IsIndicatorOff(Indicator.CAR))
-                {
-                    index = (index + index) % 30;
-                    Debug.LogFormat("[The Answer to ... #{0}] Light indicator is green AND there is an unlit CAR indicator present", moduleId);
-                    Debug.LogFormat("[The Answer to ... #{0}] The Index is {1}", moduleId, index);
-                }
+                index = (index + index) % 30;
+                Debug.LogFormat("[The Answer to ... #{0}] Light indicator is green AND there is an unlit CAR indicator present", moduleId);
+                Debug.LogFormat("[The Answer to ... #{0}] The Index is {1}", moduleId, index);
             }
             else
             {
@@ -269,7 +261,6 @@ public class Answer_to_Answer_to_blah : MonoBehaviour
             Debug.LogFormat("[The Answer to ... #{0}] The Index is {1}", moduleId, index);
         }
 
-
         currentAnswer = MeaningfulNumbers[index];
         Debug.LogFormat("[The Answer to ... #{0}] The Rule to be used is {1}", moduleId, currentAnswer);
         switch (index)
@@ -324,7 +315,7 @@ public class Answer_to_Answer_to_blah : MonoBehaviour
                     {
                         if (lastnumber % 2 == 0)
                         {
-                            Solution = lastnumber * numbers;
+                            Solution += lastnumber * numbers;
                             Debug.LogFormat("[The Answer to ... #{0}] The Solution for index 0 with 0 strikes AND last digit is even is {1}", moduleId, Solution);
                         }
                         else
@@ -335,7 +326,7 @@ public class Answer_to_Answer_to_blah : MonoBehaviour
                     }
                     else if (strikes == 1)
                     {
-                        Solution = firstnumber * lastnumber;
+                        Solution += firstnumber * lastnumber;
                         Debug.LogFormat("[The Answer to ... #{0}] The Solution for index 0 with 1 strikes is {1}", moduleId, Solution);
                     }
                     else if (strikes >= 2)
@@ -400,10 +391,6 @@ public class Answer_to_Answer_to_blah : MonoBehaviour
                         break;
                     }
                 }
-                if(Solution < 0)
-                {
-                    Solution += 10000;
-                }
                 Debug.LogFormat("[The Answer to ... #{0}] The Solution for index 6 is {1}", moduleId, Solution);
                 break;
             case 7:
@@ -413,10 +400,10 @@ public class Answer_to_Answer_to_blah : MonoBehaviour
                 Solution = 603 - 503;
                 foreach(var module in ModulesID)
                 {
-                    if(module == "Osu!")
+                    if(module == "osu!")
                     {
-                        Solution = Solution + (Num1 - letters);
-                        Debug.LogFormat("[The Answer to ... #{0}] The Solution for index 7 and Osu! is present is {1}", moduleId, Solution);
+                        Solution = Num1 < letters ? Solution + (letters - Num1) : Solution + (Num1 - letters);
+                        Debug.LogFormat("[The Answer to ... #{0}] The Solution for index 7 and osu! is present is {1}", moduleId, Solution);
                         break;
                     }
                 }
@@ -460,6 +447,17 @@ public class Answer_to_Answer_to_blah : MonoBehaviour
                 break;
             case 12:
                 Solution = 6022;
+                var modnames = Bomb.GetModuleNames();
+                foreach(var mod in modnames)
+                {
+                    if(mod == "Periodic Table")
+                    {
+                        Solution += 118;
+                        Debug.LogFormat("[The Answer to ... #{0}] The Solution for index 12 and the Periodic Table is present is {1}", moduleId, Solution);
+                        break;
+                    }
+                }
+                Solution -= 118;
                 Debug.LogFormat("[The Answer to ... #{0}] The Solution for index 12 is {1}", moduleId, Solution);
                 break;
             case 13:
@@ -476,16 +474,13 @@ public class Answer_to_Answer_to_blah : MonoBehaviour
                         break;
                     }
                 }
-                if(ispurgatoryon == false)
+                foreach (var ID in id)
                 {
-                    foreach (var ID in id)
+                    if (ID == "Creation")
                     {
-                        if (ID == "Creation")
-                        {
-                            Solution = (Solution + 666 * 2) % 10000;
-                            Debug.LogFormat("[The Answer to ... #{0}] The Solution for index 13 and Creation present is {1}", moduleId, Solution);
-                            break;
-                        }
+                        Solution = (Solution + 666 * 2) % 10000;
+                        Debug.LogFormat("[The Answer to ... #{0}] The Solution for index 13 and Creation present is {1}", moduleId, Solution);
+                        break;
                     }
                 }
                 Debug.LogFormat("[The Answer to ... #{0}] The Solution for index 13 is {1}", moduleId, Solution);
@@ -500,17 +495,16 @@ public class Answer_to_Answer_to_blah : MonoBehaviour
                     {
                         Solution = Solution + 666;
                         Debug.LogFormat("[The Answer to ... #{0}] The Solution for index 14 and Purgatory present is {1}", moduleId, Solution);
+                        break;
                     }
                 }
-                if(ispurgatoryon == false)
+                foreach (var ID in id1)
                 {
-                    foreach (var ID in id1)
+                    if (ID == "The Necronomicon")
                     {
-                        if (ID == "The Necronomicon")
-                        {
-                            Solution = (Solution + 777*2) % 10000;
-                            Debug.LogFormat("[The Answer to ... #{0}] The Solution for index 14 and Necronomicon present is {1}", moduleId, Solution);
-                        }
+                        Solution = (Solution + 777*2) % 10000;
+                        Debug.LogFormat("[The Answer to ... #{0}] The Solution for index 14 and Necronomicon present is {1}", moduleId, Solution);
+                        break;
                     }
                 }
                 Debug.LogFormat("[The Answer to ... #{0}] The Solution for index 14 is {1}", moduleId, Solution);
@@ -523,12 +517,11 @@ public class Answer_to_Answer_to_blah : MonoBehaviour
                     if(Module == "Colour Code"||Module == "Ultimate Cipher" ||Module == "Rainbow Arrows")
                     {
                         var sum = Bomb.GetSerialNumberNumbers().Sum();
-                        Solution = Solution + sum;
+                        Solution += sum;
                         Debug.LogFormat("[The Answer to ... #{0}] The Solution for index 15 AND either Colour code/Ultimate Cipher/ Rainbow Arrows are present is {1}", moduleId, Solution);
                         break;
                     }
                 }
-                Solution = 1337 + 31;
                 Debug.LogFormat("[The Answer to ... #{0}] The Solution for index 15 is {1}", moduleId, Solution);
                 break;
             case 16:
@@ -537,17 +530,17 @@ public class Answer_to_Answer_to_blah : MonoBehaviour
                 {
                     if (strikes == 0)
                     {
-                        Solution = (Solution + ports) % 30;
+                        Solution = (Solution + ports) % 10000;
                         Debug.LogFormat("[The Answer to ... #{0}] The Solution index 16 with 0 strikes is {1}", moduleId, Solution);
                     }
                     else if (strikes == 1)
                     {
-                        Solution = (Solution + (portplates * porttypes)) % 30;
+                        Solution = (Solution + (portplates * porttypes)) % 10000;
                         Debug.LogFormat("[The Answer to ... #{0}] The Solution index 16 with 1 strikes is {1}", moduleId, Solution);
                     }
                     else if (strikes >= 2)
                     {
-                        Solution = (Solution - portplates) % 30;
+                        Solution = (Solution - portplates) % 10000;
                         Debug.LogFormat("[The Answer to ... #{0}] The Solution for index 16 with 2 or more strikes is {1}", moduleId, Solution);
                     }
                 }
@@ -557,7 +550,7 @@ public class Answer_to_Answer_to_blah : MonoBehaviour
                     {
                         if (Bomb.GetModuleNames().Count() < 10)
                         {
-                            Solution = (Solution + allmodules) % 30;
+                            Solution = (Solution + allmodules) % 10000;
                             Debug.LogFormat("[The Answer to ... #{0}] The Solution index 16 with 0 strikes is {1}", moduleId, Solution);
                         }
                     }
@@ -565,7 +558,7 @@ public class Answer_to_Answer_to_blah : MonoBehaviour
                     {
                         if (Bomb.GetModuleNames().Count() < 12)
                         {
-                            Solution = (Solution + 12) % 30;
+                            Solution = (Solution + 12) % 10000;
                             Debug.LogFormat("[The Answer to ... #{0}] The Solution index 16 with 1 strikes is {1}", moduleId, Solution);
                         }
                     }
@@ -573,7 +566,7 @@ public class Answer_to_Answer_to_blah : MonoBehaviour
                     {
                         if (Bomb.GetModuleNames().Count() < 15)
                         {
-                            Solution = (Solution + allmodules) % 30;
+                            Solution = (Solution + allmodules) % 10000;
                             Debug.LogFormat("[The Answer to ... #{0}] The Solution index 16 with 2 or more strikes is {1}", moduleId, Solution);
                         }
                     }
@@ -608,7 +601,7 @@ public class Answer_to_Answer_to_blah : MonoBehaviour
                             indexofletter += 1;
                             Solution += indexofletter;
                         }
-                        Solution = Solution % 30;
+                        Solution = Solution % 10000;
                         Debug.LogFormat("[The Answer to ... #{0}] The Solution index 17 with 2 or more strikes is {1}", moduleId, Solution);
                     }
                 }
@@ -616,12 +609,12 @@ public class Answer_to_Answer_to_blah : MonoBehaviour
                 {
                     if (strikes == 0)
                     {
-                        Solution = (Solution + (AAbat * Dbat));
+                        Solution = (Solution + (AAbat * Dbat)) % 10000;
                         Debug.LogFormat("[The Answer to ... #{0}] The Solution index 17 with 0 strikes is {1}", moduleId, Solution);
                     }
                     else if (strikes == 1)
                     {
-                        Solution = (Solution + bateries);
+                        Solution = (Solution + bateries) % 10000;
                         Debug.LogFormat("[The Answer to ... #{0}] The Solution index 17 with 1 strikes is {1}", moduleId, Solution);
                     }
                     else if (strikes >= 2)
@@ -660,7 +653,7 @@ public class Answer_to_Answer_to_blah : MonoBehaviour
                             indexofletter += 1;
                             Solution += indexofletter;
                         }
-                        Solution = Solution % 30;
+                        Solution %= 10000;
                         Debug.LogFormat("[The Answer to ... #{0}] The Solution index 18 with 2 or more strikes is {1}", moduleId, Solution);
                     }
                 }
@@ -785,7 +778,7 @@ public class Answer_to_Answer_to_blah : MonoBehaviour
                             {
                                 solution = Convert.ToDouble(Solution);
                                 Solution = Convert.ToInt32(Math.Pow(Solution, 5));
-                                Solution = Solution % 30;
+                                Solution = Solution % 10000;
                                 Debug.LogFormat("[The Answer to ... #{0}] The Solution index 21 with 2 or more strikes AND lit Bob on the bomb is {1}", moduleId, Solution);
                             }
                         }
@@ -797,7 +790,7 @@ public class Answer_to_Answer_to_blah : MonoBehaviour
                     {
                         if (lastnumber % 2 == 0)
                         {
-                            Solution = lastnumber * numbers;
+                            Solution += lastnumber * numbers;
                             Debug.LogFormat("[The Answer to ... #{0}] The Solution index 21 with 0 strikes AND last number is even on the bomb is {1}", moduleId, Solution);
                         }
                         else
@@ -808,7 +801,7 @@ public class Answer_to_Answer_to_blah : MonoBehaviour
                     }
                     else if (strikes == 1)
                     {
-                        Solution = firstnumber * lastnumber;
+                        Solution += firstnumber * lastnumber;
                         Debug.LogFormat("[The Answer to ... #{0}] The Solution index 21 with 1 strikes is {1}", moduleId, Solution);
                     }
                     else if (strikes >= 2)
@@ -845,7 +838,7 @@ public class Answer_to_Answer_to_blah : MonoBehaviour
                     {
                         if (lastnumber % 2 == 0)
                         {
-                            Solution = lastnumber * numbers;
+                            Solution += lastnumber * numbers;
                             Debug.LogFormat("[The Answer to ... #{0}] The Solution index 22 with 0 strikes AND last number is even on the bomb is {1}", moduleId, Solution);
                         }
                         else
@@ -856,7 +849,7 @@ public class Answer_to_Answer_to_blah : MonoBehaviour
                     }
                     else if (strikes == 1)
                     {
-                        Solution = firstnumber * lastnumber;
+                        Solution += firstnumber * lastnumber;
                         Debug.LogFormat("[The Answer to ... #{0}] The Solution index 22 with 1 strikes is {1}", moduleId, Solution);
                     }
                     else if (strikes >= 2)
@@ -874,7 +867,7 @@ public class Answer_to_Answer_to_blah : MonoBehaviour
                 {
                     if (module == "Mafia")
                     {
-                        Solution = 49 + 11;
+                        Solution += 11;
                         Debug.LogFormat("[The Answer to ... #{0}] The Solution for index 23 and Mafia present is {1}", moduleId, Solution);
                         break;
                     }
@@ -990,7 +983,7 @@ public class Answer_to_Answer_to_blah : MonoBehaviour
                     {
                         if (lastnumber % 2 == 0)
                         {
-                            Solution = lastnumber * numbers;
+                            Solution += lastnumber * numbers;
                             Debug.LogFormat("[The Answer to ... #{0}] The Solution for index 25 with 0 strikes AND last number is even is {1}", moduleId, Solution);
                         }
                         else
@@ -1001,7 +994,7 @@ public class Answer_to_Answer_to_blah : MonoBehaviour
                     }
                     else if (strikes == 1)
                     {
-                        Solution = firstnumber * lastnumber;
+                        Solution += firstnumber * lastnumber;
                         Debug.LogFormat("[The Answer to ... #{0}] The Solution for index 25 with 1 strike is {1}", moduleId, Solution);
                     }
                     else if (strikes >= 2)
